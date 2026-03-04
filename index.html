@@ -13,7 +13,7 @@
                         zendesk: '#03363D',
                         reach: '#0052CC',
                         paycom: '#006B3F',
-                        brand: '#6366F1'
+                        brand: '#D81E43' /* Adapted to match the red AW branding */
                     },
                     animation: {
                         'slide-out': 'slideOut 0.3s ease-in forwards',
@@ -44,7 +44,7 @@
             width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9; 
+            background: #ffffff; 
             border-radius: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -65,7 +65,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 md:p-8 font-sans antialiased text-slate-800">
+<body class="bg-transparent min-h-screen flex items-center justify-center p-4 md:p-8 font-sans antialiased text-slate-800">
 
     <!-- Main Widget Container -->
     <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col h-[85vh] md:h-[700px] animate-fade-in relative">
@@ -73,7 +73,7 @@
         <!-- Header -->
         <header class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between shrink-0 relative z-10 shadow-sm">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center shadow-md shadow-indigo-200">
+                <div class="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center shadow-md shadow-rose-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                     </svg>
@@ -83,7 +83,7 @@
                     <p class="text-xs text-gray-500 font-medium" id="header-subtitle">Loading tasks...</p>
                 </div>
             </div>
-            <button onclick="resetData()" class="p-2 text-gray-400 hover:text-brand hover:bg-indigo-50 rounded-lg transition-colors group" title="Refresh/Reset Data">
+            <button onclick="resetData()" class="p-2 text-gray-400 hover:text-brand hover:bg-rose-50 rounded-lg transition-colors group" title="Refresh/Reset Data">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
@@ -91,18 +91,18 @@
         </header>
 
         <!-- Body content -->
-        <div class="flex flex-col md:flex-row flex-1 overflow-hidden bg-slate-50/50">
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden bg-white">
             
             <!-- Sidebar (Filters) -->
-            <aside class="w-full md:w-64 bg-white/50 border-r border-gray-100 p-4 shrink-0 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible">
+            <aside class="w-full md:w-64 bg-white border-r border-gray-100 p-4 shrink-0 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible">
                 <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 hidden md:block px-2">Filters</h2>
                 
-                <button onclick="setFilter('All')" id="filter-All" class="filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-indigo-50 text-brand relative">
+                <button onclick="setFilter('All')" id="filter-All" class="filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-rose-50 text-brand relative shadow-sm">
                     <div class="flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                         All Tasks
                     </div>
-                    <span class="bg-white/60 text-indigo-600 py-0.5 px-2 rounded-full text-xs" id="count-All">0</span>
+                    <span class="bg-white text-brand py-0.5 px-2 rounded-full text-xs shadow-sm transition-colors" id="count-All">0</span>
                 </button>
 
                 <button onclick="setFilter('Zendesk')" id="filter-Zendesk" class="filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all">
@@ -110,7 +110,7 @@
                         <div class="w-2 h-2 rounded-full bg-zendesk"></div>
                         Zendesk
                     </div>
-                    <span class="bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs" id="count-Zendesk">0</span>
+                    <span class="bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs transition-colors" id="count-Zendesk">0</span>
                 </button>
 
                 <button onclick="setFilter('Reach 360')" id="filter-Reach 360" class="filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all">
@@ -118,7 +118,7 @@
                         <div class="w-2 h-2 rounded-full bg-reach"></div>
                         Reach 360
                     </div>
-                    <span class="bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs" id="count-Reach 360">0</span>
+                    <span class="bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs transition-colors" id="count-Reach 360">0</span>
                 </button>
 
                 <button onclick="setFilter('Paycom')" id="filter-Paycom" class="filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all">
@@ -126,7 +126,7 @@
                         <div class="w-2 h-2 rounded-full bg-paycom"></div>
                         Paycom
                     </div>
-                    <span class="bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs" id="count-Paycom">0</span>
+                    <span class="bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs transition-colors" id="count-Paycom">0</span>
                 </button>
             </aside>
 
@@ -195,10 +195,10 @@
             });
 
             const activeBtn = document.getElementById(`filter-${filterName}`);
-            activeBtn.className = 'filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-indigo-50 text-brand relative shadow-sm';
+            activeBtn.className = 'filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-rose-50 text-brand relative shadow-sm';
             const activeBadge = activeBtn.querySelector('span');
             if(activeBadge) {
-                activeBadge.className = 'bg-white text-indigo-600 py-0.5 px-2 rounded-full text-xs shadow-sm transition-colors';
+                activeBadge.className = 'bg-white text-brand py-0.5 px-2 rounded-full text-xs shadow-sm transition-colors';
             }
 
             renderTasks();
