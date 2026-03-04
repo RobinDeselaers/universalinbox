@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Inbox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        zendesk: '#03363D',
+                        reach: '#0052CC',
+                        paycom: '#006B3F',
+                        brand: '#6366F1'
+                    },
+                    animation: {
+                        'slide-out': 'slideOut 0.3s ease-in forwards',
+                        'slide-in': 'slideIn 0.3s ease-out forwards',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards'
+                    },
+                    keyframes: {
+                        slideOut: {
+                            '0%': { opacity: '1', transform: 'translateX(0)' },
+                            '100%': { opacity: '0', transform: 'translateX(20px)' }
+                        },
+                        slideIn: {
+                            '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for the inbox list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        .task-item {
+            transition: all 0.3s ease;
+        }
+        .task-item.removing {
+            opacity: 0;
+            transform: scale(0.95) translateX(20px);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 md:p-8 font-sans antialiased text-slate-800">
+
+    <!-- Main Widget Container -->
+    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col h-[85vh] md:h-[700px] animate-fade-in relative">
+        
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between shrink-0 relative z-10 shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center shadow-md shadow-indigo-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">Universal Inbox</h1>
+                    <p class="text-xs text-gray-500 font-medium" id="header-subtitle">Loading tasks...</p>
+                </div>
+            </div>
+            <button onclick="resetData()" class="p-2 text-gray-400 hover:text-brand hover:bg-indigo-50 rounded-lg transition-colors group" title="Refresh/Reset Data">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- Body content -->
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden bg-slate-50/50">
+            
+            <!-- Sidebar (Filters) -->
+            <aside class="w-full md:w-64 bg-white/50 border-r border-gray-100 p-4 shrink-0 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 hidden md:block px-2">Filters</h2>
+                
+                <button onclick="setFilter('All')" id="filter-All" class="filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-indigo-50 text-brand relative">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                        All Tasks
+                    </div>
+                    <span class="bg-white/60 text-indigo-600 py-0.5 px-2 rounded-full text-xs" id="count-All">0</span>
+                </button>
+
+                <button onclick="setFilter('Zendesk')" id="filter-Zendesk" class="filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-zendesk"></div>
+                        Zendesk
+                    </div>
+                    <span class="bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs" id="count-Zendesk">0</span>
+                </button>
+
+                <button onclick="setFilter('Reach 360')" id="filter-Reach 360" class="filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-reach"></div>
+                        Reach 360
+                    </div>
+                    <span class="bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs" id="count-Reach 360">0</span>
+                </button>
+
+                <button onclick="setFilter('Paycom')" id="filter-Paycom" class="filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-paycom"></div>
+                        Paycom
+                    </div>
+                    <span class="bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs" id="count-Paycom">0</span>
+                </button>
+            </aside>
+
+            <!-- Main Inbox List -->
+            <main class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 relative">
+                <div id="task-list" class="space-y-3 pb-8">
+                    <!-- Tasks injected by JS -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 flex flex-col gap-2 z-50"></div>
+
+    <script>
+        // Mock Initial Data
+        const initialTasks = [
+            { id: 1, source: 'Zendesk', title: 'Priority: Site Outage Reported', description: 'Multiple customers reporting inability to access the checkout page. High priority.', date: '10 mins ago', type: 'Ticket #8842', status: 'pending', link: '#' },
+            { id: 2, source: 'Paycom', title: 'Approve Timesheets - Marketing Team', description: 'Bi-weekly timesheet approval required for direct reports before Friday 5PM.', date: '2 hours ago', type: 'Action Required', status: 'pending', link: '#' },
+            { id: 3, source: 'Reach 360', title: 'Q3 Security Compliance Training', description: 'Mandatory annual module on data privacy and phishing prevention. Est. time: 30 mins.', date: '1 day ago', type: 'Course', status: 'pending', link: '#' },
+            { id: 4, source: 'Zendesk', title: 'Refund Request: Order #99281', description: 'Customer requested refund for delayed shipping. Awaiting manager approval.', date: 'Yesterday', type: 'Ticket #8821', status: 'pending', link: '#' },
+            { id: 5, source: 'Paycom', title: 'Acknowledge Updated Employee Handbook', description: 'Please review and e-sign the updated remote work policies.', date: '3 days ago', type: 'Document Sign', status: 'pending', link: '#' },
+            { id: 6, source: 'Reach 360', title: 'Leadership Fundamentals: Conflict Resolution', description: 'Assigned by HR. Part 2 of the new manager onboarding track.', date: '1 week ago', type: 'Course', status: 'pending', link: '#' },
+        ];
+
+        let tasks = [];
+        let currentFilter = 'All';
+
+        // Initialize
+        function init() {
+            // Load from local memory or clone initial
+            tasks = JSON.parse(JSON.stringify(initialTasks));
+            renderTasks();
+        }
+
+        // SVG Icons for Sources
+        const icons = {
+            'Zendesk': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 12h11.967L24 0zM12 24l12-12H12.033L0 24z"/></svg>`,
+            'Reach 360': `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>`,
+            'Paycom': `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+        };
+
+        const bgColors = {
+            'Zendesk': 'bg-zendesk',
+            'Reach 360': 'bg-reach',
+            'Paycom': 'bg-paycom'
+        };
+
+        const textColors = {
+            'Zendesk': 'text-zendesk',
+            'Reach 360': 'text-reach',
+            'Paycom': 'text-paycom'
+        };
+
+        function setFilter(filterName) {
+            currentFilter = filterName;
+            
+            // Update UI buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = 'filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all';
+                const badge = btn.querySelector('span');
+                if(badge) {
+                    badge.className = 'bg-gray-100 text-gray-500 py-0.5 px-2 rounded-full text-xs transition-colors';
+                }
+            });
+
+            const activeBtn = document.getElementById(`filter-${filterName}`);
+            activeBtn.className = 'filter-btn flex-shrink-0 md:flex-shrink w-auto md:w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-indigo-50 text-brand relative shadow-sm';
+            const activeBadge = activeBtn.querySelector('span');
+            if(activeBadge) {
+                activeBadge.className = 'bg-white text-indigo-600 py-0.5 px-2 rounded-full text-xs shadow-sm transition-colors';
+            }
+
+            renderTasks();
+        }
+
+        function renderTasks() {
+            const listEl = document.getElementById('task-list');
+            const filteredTasks = tasks.filter(t => t.status === 'pending' && (currentFilter === 'All' || t.source === currentFilter));
+            
+            updateCounts();
+
+            if (filteredTasks.length === 0) {
+                listEl.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full py-20 animate-fade-in text-center">
+                        <div class="w-24 h-24 mb-4 text-gray-200">
+                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-700 mb-1">Inbox Zero!</h3>
+                        <p class="text-gray-400">You're all caught up in ${currentFilter === 'All' ? 'your Universal Inbox' : currentFilter}.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Generate HTML
+            listEl.innerHTML = filteredTasks.map((task, index) => `
+                <div id="task-${task.id}" class="task-item bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg hover:border-gray-300 flex flex-col sm:flex-row items-start sm:items-center gap-4 group" style="animation: slideIn 0.3s ease-out ${index * 0.05}s both;">
+                    
+                    <!-- Icon -->
+                    <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-white ${bgColors[task.source]} shadow-sm">
+                        ${icons[task.source]}
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider ${textColors[task.source]} bg-gray-50 px-2 py-0.5 rounded border border-gray-100">${task.source}</span>
+                            <span class="text-xs text-gray-400 font-medium whitespace-nowrap">&bull; ${task.date}</span>
+                        </div>
+                        <h3 class="text-[15px] font-bold text-gray-900 leading-tight mb-1 truncate group-hover:text-brand transition-colors">${task.title}</h3>
+                        <p class="text-sm text-gray-500 line-clamp-1">${task.description}</p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100 mt-2 sm:mt-0">
+                        <button onclick="markAsDone(${task.id})" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-500 bg-white border border-gray-200 hover:bg-green-50 hover:text-green-600 hover:border-green-200 rounded-lg transition-all" title="Mark as Done">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                            <span class="sm:hidden">Done</span>
+                        </button>
+                        
+                        <a href="${task.link}" target="_blank" onclick="event.preventDefault(); showToast('Jumping off to ${task.source}...');" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-slate-800 hover:bg-brand rounded-lg transition-all shadow-sm hover:shadow" title="Open in ${task.source}">
+                            <span class="hidden sm:inline">Open</span>
+                            <span class="sm:hidden">Open in ${task.source}</span>
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateCounts() {
+            const counts = {
+                'All': 0,
+                'Zendesk': 0,
+                'Reach 360': 0,
+                'Paycom': 0
+            };
+
+            tasks.forEach(t => {
+                if(t.status === 'pending') {
+                    counts['All']++;
+                    counts[t.source]++;
+                }
+            });
+
+            for (const [key, value] of Object.entries(counts)) {
+                const el = document.getElementById(`count-${key}`);
+                if (el) el.innerText = value;
+            }
+
+            // Update Header
+            const pending = counts['All'];
+            document.getElementById('header-subtitle').innerText = pending === 0 
+                ? "You're all caught up!" 
+                : `${pending} action${pending !== 1 ? 's' : ''} require${pending === 1 ? 's' : ''} your attention`;
+        }
+
+        function markAsDone(id) {
+            const taskEl = document.getElementById(`task-${id}`);
+            const task = tasks.find(t => t.id === id);
+            
+            if (taskEl && task) {
+                // Apply visual removal animation
+                taskEl.classList.add('removing');
+                
+                // Show Toast
+                showToast(`Marked "${task.title}" as done.`);
+
+                // Wait for animation to finish before removing from logical state
+                setTimeout(() => {
+                    task.status = 'done';
+                    renderTasks();
+                }, 300); // matches the CSS transition time
+            }
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            toast.className = 'bg-gray-800 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 text-sm font-medium animate-slide-in';
+            toast.innerHTML = `
+                <svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                ${message}
+            `;
+            
+            container.appendChild(toast);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('animate-slide-in');
+                toast.classList.add('animate-slide-out');
+                setTimeout(() => {
+                    if (container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function resetData() {
+            init();
+            showToast("Inbox reset with new mock data.");
+        }
+
+        // Run on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
